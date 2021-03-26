@@ -1,11 +1,18 @@
 const mongoose = require("mongoose");
+const uniqueValidator = require("mongoose-unique-validator");
 const validator = require("validator");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const userSchema = new mongoose.Schema(
     {
-        name: { type: String, required: true, trim: true },
+        userName: {
+            type: String,
+            required: true,
+            trim: true,
+            unique: true,
+            uniqueCaseInsensitive: true,
+        },
         email: {
             type: String,
             required: true,
@@ -30,6 +37,8 @@ const userSchema = new mongoose.Schema(
                 }
             },
         },
+        level: { type: Number, default: 1 },
+        rank: { type: Number, default: 0 },
         tokens: [
             {
                 token: { type: String, required: true },
@@ -95,6 +104,8 @@ userSchema.methods.toJSON = function () {
 
     return userObject;
 };
+
+userSchema.plugin(uniqueValidator);
 
 const User = mongoose.model("User", userSchema);
 

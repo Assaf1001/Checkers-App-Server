@@ -17,9 +17,14 @@ router.post("/users/signup", async (req, res) => {
 
         res.status(201).send({ user, token });
     } catch (err) {
+        const message =
+            (err.errors.userName
+                ? `The User name "${err.errors.userName.value}"`
+                : `The Email "${err.errors.email.value}"`) +
+            " is already in use!";
         res.status(400).send({
             status: 400,
-            message: err.message,
+            message,
         });
     }
 });

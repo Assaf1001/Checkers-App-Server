@@ -54,21 +54,20 @@ const serverIo = (httpServer) => {
 
         socket.on("sendRoom", () => {
             const room = getRoom(socket.id);
-            if (!room.player1) {
-                socket.emit("receiveRoom");
-            }
+            // if (!room.player1) {
+            //     socket.emit("receiveRoom");
+            // }
             let opponent;
             if (room.player1.id === socket.id) {
                 opponent = room.player2;
             } else {
                 opponent = room.player1;
             }
-            socket.emit("receiveRoom", opponent);
+            socket.emit("receiveRoom", { room, opponent });
         });
 
         socket.on("sendBoard", (board, oppponentId) => {
-            console.log(board);
-            // socket.emit("receiveBoard", board);
+            // console.log(board);
             socket.to(oppponentId).emit("receiveBoard", board);
         });
     });

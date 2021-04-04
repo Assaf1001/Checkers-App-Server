@@ -1,5 +1,4 @@
 const socketio = require("socket.io");
-const { base } = require("../models/userModel");
 const {
     addUser,
     getUsers,
@@ -66,9 +65,8 @@ const serverIo = (httpServer) => {
             socket.emit("receiveRoom", { room, opponent });
         });
 
-        socket.on("sendBoard", (board, oppponentId) => {
-            // console.log(board);
-            socket.to(oppponentId).emit("receiveBoard", board);
+        socket.on("sendState", (state, oppponentId) => {
+            socket.to(oppponentId).emit("receiveState", state);
         });
     });
 };

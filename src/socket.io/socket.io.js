@@ -22,14 +22,14 @@ const serverIo = (httpServer) => {
     io.on("connection", (socket) => {
         console.log("New WebSocket Connection");
 
-        socket.on("addUser", (userName) => {
-            addUser(socket.id, userName);
-            io.emit("getUsers", getUsers(socket.id));
+        socket.on("addUser", (user) => {
+            addUser(socket.id, user);
+            io.emit("getUsers", getUsers());
         });
 
         socket.on("disconnect", () => {
             removeUser(socket.id);
-            io.emit("getUsers", getUsers(socket.id));
+            io.emit("getUsers", getUsers());
         });
 
         socket.on("sendInvitation", (id) => {
@@ -45,29 +45,46 @@ const serverIo = (httpServer) => {
             const room = generateRoom(getUser(id), getUser(socket.id));
             socket.to(id).emit("receiveAcception", room);
             socket.emit("receiveAcception", room);
+            io.emit("getUsers", getUsers());
         });
 
-        socket.on("getRooms", () => {
-            socket.emit("receiveRooms", getRooms());
-        });
+        // socket.on("getRooms", () => {
+        //     socket.emit("receiveRooms", getRooms());
+        // });
 
         socket.on("sendRoom", () => {
             const room = getRoom(socket.id);
-            // if (!room.player1) {
-            //     socket.emit("receiveRoom");
-            // }
-            let opponent;
-            if (room.player1.id === socket.id) {
-                opponent = room.player2;
-            } else {
-                opponent = room.player1;
+            console.log(getRooms());
+
+            if (room) {
+                let opponent;
+                if (room.player1.id === socket.id) {
+                    opponent = room.player2;
+                } else {
+                    opponent = room.player1;
+                }
+                socket.emit("receiveRoom", { room, opponent });
             }
-            socket.emit("receiveRoom", { room, opponent });
         });
 
-        socket.on("sendState", (state, oppponentId) => {
-            socket.to(oppponentId).emit("receiveState", state);
+        socket.on("sendState", (state, opponentId) => {
+            socket.to(opponentId).emit("receiveState", state);
         });
+
+        // socket.on('playAgain',(opponentId)=>{
+        //     socket.emit('send')
+        // })
+
+        // socket.on("connectionCheck", (opponentId) => {
+        // console.log(getRoom(socket.id));
+        // console.log(socket.connected, io.sockets.sockets);
+        // console.log(opponentId);
+        // if (io.sockets.sockets[opponentId] != undefined) {
+        // console.log(Object.keys(io.sockets.sockets));
+        // } else {
+        // console.log("Socket not connected");
+        // }
+        // });
     });
 };
 

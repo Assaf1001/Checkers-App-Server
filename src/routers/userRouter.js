@@ -162,4 +162,26 @@ router.patch("/users/me/changePassword", auth, async (req, res) => {
     }
 });
 
+router.patch("/users/me/updateRank", auth, async (req, res) => {
+    try {
+        req.user.rank += req.body.rankToAdd;
+        await req.user.save();
+
+        res.send(req.user);
+    } catch (err) {
+        res.status(500).send(err);
+    }
+});
+
+router.patch("/users/me/updateLevel", auth, async (req, res) => {
+    try {
+        req.user.level = req.body.newLevel;
+        await req.user.save();
+
+        res.send(req.user);
+    } catch (err) {
+        res.status(500).send(err);
+    }
+});
+
 module.exports = router;

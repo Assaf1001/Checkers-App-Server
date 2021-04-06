@@ -3,11 +3,12 @@ const { nanoid } = require("nanoid");
 let users = [];
 let rooms = [];
 
-const addUser = (id, userName) => {
-    for (let user of users) {
-        if (user.userName === userName) return;
+const addUser = (id, user) => {
+    for (let userObj of users) {
+        if (userObj.userName === user.userName) return;
     }
-    if (userName) users.push({ id, userName });
+    delete user.email;
+    if (user) users.push({ id, ...user });
 };
 
 const removeUser = (id) => {

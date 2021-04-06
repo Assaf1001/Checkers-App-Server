@@ -54,7 +54,6 @@ const serverIo = (httpServer) => {
 
         socket.on("sendRoom", () => {
             const room = getRoom(socket.id);
-            console.log(getRooms());
 
             if (room) {
                 let opponent;

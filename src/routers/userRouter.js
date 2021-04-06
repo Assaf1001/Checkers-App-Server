@@ -184,4 +184,23 @@ router.patch("/users/me/updateLevel", auth, async (req, res) => {
     }
 });
 
+router.get("/leaderBoard", async (req, res) => {
+    try {
+        const users = await User.find({});
+
+        const leaderBoard = [];
+        users.forEach((user) => {
+            leaderBoard.push({
+                userName: user.userName,
+                rank: user.rank,
+                level: user.level,
+            });
+        });
+
+        res.send(leaderBoard);
+    } catch (err) {
+        res.status(500).send(err);
+    }
+});
+
 module.exports = router;

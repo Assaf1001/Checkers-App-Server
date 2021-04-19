@@ -1,56 +1,70 @@
 const socketio = require("socket.io");
 const {
-    addUser,
-    getUsers,
-    removeUser,
-    getUser,
-    generateRoom,
-    getRooms,
-    getRoom,
-} = require("./utils");
+    initRedisDB,
+    removeUserRedis,
+    getUserRedis,
+} = require("./redisRequests");
+const { addUser, getUsers, generateRoom, getRoom } = require("./utils");
 
 const serverIo = (httpServer) => {
     const io = socketio(httpServer, {
         cors: {
             origin: process.env.CLIENT_URL,
-            // methods: ["GET", "POST"],
-            // allowedHeaders: ["userName"],
             credentials: true,
         },
     });
+
+    initRedisDB()
+        .then((res) => console.log(res))
+        .catch((err) => console.log(err));
 
     io.on("connection", (socket) => {
         console.log("New WebSocket Connection");
 
         socket.on("addUser", (user) => {
             addUser(socket.id, user);
-            io.emit("getUsers", getUsers());
+
+            getUsers().then((users) => {
+                io.emit("getUsers", users);
+                console.log(users);
+            });
         });
 
         socket.on("disconnect", () => {
-            removeUser(socket.id);
-            io.emit("getUsers", getUsers());
+            removeUserRedis(socket.id)
+                .then(() => {
+                    return getUsers();
+                })
+                .then((users) => {
+                    io.emit("getUsers", users);
+                });
         });
 
         socket.on("sendInvitation", (id) => {
-            socket.to(id).emit("receiveInvitation", getUser(socket.id));
+            getUserRedis(socket.id).then((user) => {
+                socket.to(id).emit("receiveInvitation", user);
+            });
         });
 
         socket.on("sendDecline", (id) => {
-            socket.to(id).emit("receiveDecline", getUser(socket.id));
-            socket.emit("receiveDecline", getUser(socket.id));
+            getUserRedis(socket.id).then((user) => {
+                socket.to(id).emit("receiveDecline", user);
+                socket.emit("receiveDecline", user);
+            });
         });
 
         socket.on("sendAcception", (id) => {
-            const room = generateRoom(getUser(id), getUser(socket.id));
-            socket.to(id).emit("receiveAcception", room);
-            socket.emit("receiveAcception", room);
-            io.emit("getUsers", getUsers());
-        });
+            generateRoom(id, socket.id)
+                .then((room) => {
+                    socket.to(id).emit("receiveAcception", room);
+                    socket.emit("receiveAcception", room);
 
-        // socket.on("getRooms", () => {
-        //     socket.emit("receiveRooms", getRooms());
-        // });
+                    return getUsers();
+                })
+                .then((users) => {
+                    io.emit("getUsers", users);
+                });
+        });
 
         socket.on("sendRoom", () => {
             const room = getRoom(socket.id);
@@ -69,21 +83,6 @@ const serverIo = (httpServer) => {
         socket.on("sendState", (state, opponentId) => {
             socket.to(opponentId).emit("receiveState", state);
         });
-
-        // socket.on('playAgain',(opponentId)=>{
-        //     socket.emit('send')
-        // })
-
-        // socket.on("connectionCheck", (opponentId) => {
-        // console.log(getRoom(socket.id));
-        // console.log(socket.connected, io.sockets.sockets);
-        // console.log(opponentId);
-        // if (io.sockets.sockets[opponentId] != undefined) {
-        // console.log(Object.keys(io.sockets.sockets));
-        // } else {
-        // console.log("Socket not connected");
-        // }
-        // });
     });
 };
 

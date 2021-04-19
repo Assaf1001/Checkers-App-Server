@@ -3,6 +3,7 @@ const cors = require("cors");
 const http = require("http");
 const ioConnection = require("./socket.io/socket.io.js");
 const userRouter = require("./routers/userRouter.js");
+const redisRouter = require("./routers/redisRouter.js");
 require("./db/mongoose.js");
 
 const port = process.env.PORT;
@@ -13,6 +14,7 @@ const httpServer = http.createServer(app);
 app.use(express.json());
 app.use(cors());
 app.use(userRouter);
+app.use(redisRouter);
 
 ioConnection(httpServer);
 
